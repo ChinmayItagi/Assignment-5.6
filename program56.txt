@@ -1,0 +1,98 @@
+// map class
+
+
+import java.io.IOException;
+
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.*; 
+
+public class map55 extends Mapper<LongWritable, Text, Text, IntWritable> {
+	IntWritable no = new IntWritable(1);
+	public void map(LongWritable key, Text value, Context context) 
+			throws IOException, InterruptedException {
+		String[] lineArray = value.toString().split("\\,+");
+		if(lineArray.length>1)
+		{
+		//stroing the splitted values in strings
+		
+	
+		context.write(new Text("Number of passengers"), no);
+		
+	}
+	}
+}
+
+
+// reduce class
+
+import java.io.IOException;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.mapreduce.Reducer;
+public class reduce55 extends Reducer<Text,IntWritable,Text, IntWritable> {
+	public void reduce(Text key, Iterable<IntWritable> value , Context con) throws IOException, InterruptedException
+	{
+		int sum =0;
+		for(IntWritable v : value)
+		{
+			sum = sum + v.get();
+		}
+		con.write(key, new IntWritable(sum));
+	}
+
+}
+
+
+//driver class
+
+
+import org.apache.hadoop.fs.Path; 
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat; 
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat; 
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat; 
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+
+public class driver55 {
+	@SuppressWarnings("deprecation")
+	public static void main(String[] args) throws Exception {
+		Configuration conf = new Configuration();
+		Job job = new Job(conf, "DemoTask1");
+		job.setJarByClass(driver55.class);
+
+		job.setMapOutputKeyClass(Text.class);
+		job.setMapOutputValueClass(IntWritable.class);
+
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(IntWritable.class);
+		job.setMapperClass(map55.class);
+		job.setReducerClass(reduce55.class);
+		job.setInputFormatClass(TextInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+
+		FileInputFormat.addInputPath(job, new Path(args[0])); 
+		FileOutputFormat.setOutputPath(job,new Path(args[1]));
+		
+		/*
+		Path out=new Path(args[1]);
+		out.getFileSystem(conf).delete(out);
+		*/
+		
+		job.waitForCompletion(true);// wait for the job to end
+		
+			}}
+
+
+
+//output
+
+chinmay@Chinmay-ThinkPad-E460:~/Desktop$ hadoop fs -cat /user/chins/output/54op8/part-r-00000
+Number of passengers	891
+chinmay@Chinmay-ThinkPad-E460:~/Desktop$ 
+
+
